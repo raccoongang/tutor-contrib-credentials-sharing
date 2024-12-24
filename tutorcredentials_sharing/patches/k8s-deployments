@@ -1,0 +1,204 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lms-eventbus-consumer
+  labels:
+    app.kubernetes.io/name: lms-eventbus-consumer
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: lms-eventbus-consumer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: lms-eventbus-consumer
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: lms-eventbus-consumer
+          image: {{ DOCKER_IMAGE_OPENEDX }}
+          args: [
+            "./manage.py",
+            "lms",
+            "consume_events",
+            "--topic",
+            "{{ EVENT_BUS_LMS_CONSUMER_TOPIC }}",
+            "--group_id",
+            "{{ EVENT_BUS_LMS_CONSUMER_GROUP }}",
+            "--extra",
+            "{\"consumer_name\": \"{{ EVENT_BUS_LMS_CONSUMER_NAME }}\"}"
+          ]
+          env:
+          - name: SERVICE_VARIANT
+            value: lms
+          - name: DJANGO_SETTINGS_MODULE
+            value: lms.envs.tutor.production
+          volumeMounts:
+            - mountPath: /openedx/edx-platform/lms/envs/tutor/
+              name: settings-lms
+            - mountPath: /openedx/edx-platform/cms/envs/tutor/
+              name: settings-cms
+            - mountPath: /openedx/config
+              name: config
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: settings-lms
+          configMap:
+            name: openedx-settings-lms
+        - name: settings-cms
+          configMap:
+            name: openedx-settings-cms
+        - name: config
+          configMap:
+            name: openedx-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cms-eventbus-consumer
+  labels:
+    app.kubernetes.io/name: cms-eventbus-consumer
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cms-eventbus-consumer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cms-eventbus-consumer
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: cms-eventbus-consumer
+          image: {{ DOCKER_IMAGE_OPENEDX }}
+          args: [
+            "./manage.py",
+            "cms",
+            "consume_events",
+            "--topic",
+            "{{ EVENT_BUS_CMS_CONSUMER_TOPIC }}",
+            "--group_id",
+            "{{ EVENT_BUS_CMS_CONSUMER_GROUP }}",
+            "--extra",
+            "{\"consumer_name\": \"{{ EVENT_BUS_CMS_CONSUMER_NAME }}\"}"
+          ]
+          env:
+          - name: SERVICE_VARIANT
+            value: cms
+          - name: DJANGO_SETTINGS_MODULE
+            value: cms.envs.tutor.production
+          volumeMounts:
+            - mountPath: /openedx/edx-platform/lms/envs/tutor/
+              name: settings-lms
+            - mountPath: /openedx/edx-platform/cms/envs/tutor/
+              name: settings-cms
+            - mountPath: /openedx/config
+              name: config
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: settings-lms
+          configMap:
+            name: openedx-settings-lms
+        - name: settings-cms
+          configMap:
+            name: openedx-settings-cms
+        - name: config
+          configMap:
+            name: openedx-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: credentials-eventbus-consumer
+  labels:
+    app.kubernetes.io/name: credentials-eventbus-consumer
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: credentials-eventbus-consumer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: credentials-eventbus-consumer
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: credentials-eventbus-consumer
+          image: {{ CREDENTIALS_DOCKER_IMAGE }}
+          args: [
+            "./manage.py",
+            "consume_events",
+            "--topic",
+            "{{ EVENT_BUS_CREDENTIALS_CONSUMER_TOPIC }}",
+            "--group_id",
+            "{{ EVENT_BUS_CREDENTIALS_CONSUMER_GROUP }}",
+            "--extra",
+            "{\"consumer_name\": \"{{ EVENT_BUS_CREDENTIALS_CONSUMER_NAME }}\"}"
+          ]
+          env:
+            - name: DJANGO_SETTINGS_MODULE
+              value: credentials.settings.tutor.production
+          volumeMounts:
+            - mountPath: /openedx/credentials/credentials/settings/tutor/production.py
+              name: settings
+              subPath: production.py
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: settings
+          configMap:
+            name: credentials-settings
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: credentials-certificates-eventbus-consumer
+  labels:
+    app.kubernetes.io/name: credentials-certificates-eventbus-consumer
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: credentials-certificates-eventbus-consumer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: credentials-certificates-eventbus-consumer
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: credentials-certificates-eventbus-consumer
+          image: {{ CREDENTIALS_DOCKER_IMAGE }}
+          args: [
+            "./manage.py",
+            "consume_events",
+            "--topic",
+            "{{ EVENT_BUS_CREDENTIALS_CERTIFICATES_CONSUMER_TOPIC }}",
+            "--group_id",
+            "{{ EVENT_BUS_CREDENTIALS_CERTIFICATES_CONSUMER_GROUP }}",
+            "--extra",
+            "{\"consumer_name\": \"{{ EVENT_BUS_CREDENTIALS_CERTIFICATES_CONSUMER_NAME }}\"}"
+          ]
+          env:
+            - name: DJANGO_SETTINGS_MODULE
+              value: credentials.settings.tutor.production
+          volumeMounts:
+            - mountPath: /openedx/credentials/credentials/settings/tutor/production.py
+              name: settings
+              subPath: production.py
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: settings
+          configMap:
+            name: credentials-settings

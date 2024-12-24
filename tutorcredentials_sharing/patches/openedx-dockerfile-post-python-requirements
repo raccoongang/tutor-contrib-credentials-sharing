@@ -1,0 +1,1 @@
+{% include "credentials-sharing/build/credentials-sharing/partials/dockerfile" %}

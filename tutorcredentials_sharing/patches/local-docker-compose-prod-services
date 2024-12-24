@@ -1,0 +1,64 @@
+lms-eventbus-consumer:
+    image: {{ DOCKER_IMAGE_OPENEDX }}
+    environment:
+      SERVICE_VARIANT: lms
+      DJANGO_SETTINGS_MODULE: lms.envs.tutor.production
+    command: "./manage.py lms consume_events --topic {{ EVENT_BUS_LMS_CONSUMER_TOPIC }} --group_id {{ EVENT_BUS_LMS_CONSUMER_GROUP }} --extra '{\"consumer_name\": \"{{ EVENT_BUS_LMS_CONSUMER_NAME }}\"}'"
+    restart: unless-stopped
+    volumes:
+      - ../apps/openedx/settings/lms:/openedx/edx-platform/lms/envs/tutor:ro
+      - ../apps/openedx/settings/cms:/openedx/edx-platform/cms/envs/tutor:ro
+      - ../apps/openedx/config:/openedx/config:ro
+      - ../../data/lms:/openedx/data
+      - ../../data/openedx-media:/openedx/media
+      - ../../data/openedx-media-private:/openedx/media-private
+    depends_on:
+      - lms
+      {% if EVENT_BUS_BACKEND == EVENT_BUS_BACKEND_REDIS %}- redis{% endif %}
+
+cms-eventbus-consumer:
+    image: {{ DOCKER_IMAGE_OPENEDX }}
+    environment:
+        SERVICE_VARIANT: cms
+        DJANGO_SETTINGS_MODULE: cms.envs.tutor.production
+    command: "./manage.py cms consume_events --topic {{ EVENT_BUS_CMS_CONSUMER_TOPIC }} --group_id {{ EVENT_BUS_CMS_CONSUMER_GROUP }} --extra '{\"consumer_name\": \"{{ EVENT_BUS_CMS_CONSUMER_NAME }}\"}'"
+    depends_on:
+      - cms
+      {% if EVENT_BUS_BACKEND == EVENT_BUS_BACKEND_REDIS %}- redis{% endif %}
+    volumes:
+      - ../apps/openedx/settings/lms:/openedx/edx-platform/lms/envs/tutor:ro
+      - ../apps/openedx/settings/cms:/openedx/edx-platform/cms/envs/tutor:ro
+      - ../apps/openedx/config:/openedx/config:ro
+      - ../../data/cms:/openedx/data
+      - ../../data/openedx-media:/openedx/media
+      - ../../data/openedx-media-private:/openedx/media-private
+
+credentials-eventbus-consumer:
+  image: {{ CREDENTIALS_DOCKER_IMAGE }}
+  environment:
+    DJANGO_SETTINGS_MODULE: credentials.settings.tutor.production
+  command: "./manage.py consume_events --topic {{ EVENT_BUS_CREDENTIALS_CONSUMER_TOPIC }} --group_id {{ EVENT_BUS_CREDENTIALS_CONSUMER_GROUP }} --extra '{\"consumer_name\": \"{{ EVENT_BUS_CREDENTIALS_CONSUMER_NAME }}\"}'"
+  stdin_open: true
+  tty: true
+  depends_on:
+      - credentials
+      {% if EVENT_BUS_BACKEND == EVENT_BUS_BACKEND_REDIS %}- redis{% endif %}
+  volumes:
+    # editable requirements
+    - ../plugins/credentials/apps/credentials/settings:/openedx/credentials/credentials/settings/tutor:ro
+    - ../plugins/credentials/build/credentials/requirements:/openedx/requirements
+
+credentials-certificates-eventbus-consumer:
+  image: {{ CREDENTIALS_DOCKER_IMAGE }}
+  environment:
+    DJANGO_SETTINGS_MODULE: credentials.settings.tutor.production
+  command: "./manage.py consume_events --topic {{ EVENT_BUS_CREDENTIALS_CERTIFICATES_CONSUMER_TOPIC }} --group_id {{ EVENT_BUS_CREDENTIALS_CERTIFICATES_CONSUMER_GROUP }} --extra '{\"consumer_name\": \"{{ EVENT_BUS_CREDENTIALS_CERTIFICATES_CONSUMER_NAME }}\"}'"
+  stdin_open: true
+  tty: true
+  depends_on:
+      - credentials
+      {% if EVENT_BUS_BACKEND == EVENT_BUS_BACKEND_REDIS %}- redis{% endif %}
+  volumes:
+    # editable requirements
+    - ../plugins/credentials/apps/credentials/settings:/openedx/credentials/credentials/settings/tutor:ro
+    - ../plugins/credentials/build/credentials/requirements:/openedx/requirements
