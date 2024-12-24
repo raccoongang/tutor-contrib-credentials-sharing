@@ -33,8 +33,8 @@ if __version_suffix__:
 # - (optional) adds Redis Insight service for development observability
 # - (optional) installs event-bus-conductor to each supported service
 
-EVENT_BUS_BACKEND_REDIS = 'redis'
-EVENT_BUS_BACKEND_KAFKA = 'kafka'
+EVENT_BUS_BACKEND_REDIS = "redis"
+EVENT_BUS_BACKEND_KAFKA = "kafka"
 
 ########################################
 # CONFIGURATION
@@ -61,7 +61,7 @@ consumers: t.Dict[str, t.Dict[str, t.Any]] = {
 }
 
 # TODO: define producer config for services
-producers:  t.Dict[str, t.Dict[str, t.Any]] = {
+producers: t.Dict[str, t.Dict[str, t.Any]] = {
     "lms": {},
     "credentials": {},
     "discovery": {},
@@ -109,9 +109,12 @@ tutor_hooks.Filters.CONFIG_OVERRIDES.add_items(
 
 tutor_hooks.Filters.ENV_PATCHES.add_items(
     [
-        ("openedx-common-settings", """EVENT_BUS_PRODUCER_CONFIG.update({\
+        (
+            "openedx-common-settings",
+            """EVENT_BUS_PRODUCER_CONFIG.update({\
 'org.openedx.learning.course.passing.status.updated.v1': {'learning-badges-lifecycle': {'event_key_field': 'course_passing_status.course.course_key', 'enabled': True}},
-'org.openedx.learning.ccx.course.passing.status.updated.v1': {'learning-badges-lifecycle': {'event_key_field': 'course_passing_status.course.ccx_course_key', 'enabled': True}}})"""),
+'org.openedx.learning.ccx.course.passing.status.updated.v1': {'learning-badges-lifecycle': {'event_key_field': 'course_passing_status.course.ccx_course_key', 'enabled': True}}})""",
+        ),
     ]
 )
 # TODO: validate RUN_REDIS is True if BACKEND == EVENT_BUS_BACKEND_REDIS
@@ -136,13 +139,13 @@ tutor_hooks.Filters.ENV_PATCHES.add_items(
     [
         (
             "mfe-lms-common-settings",
-"""
+            """
 MFE_CONFIG_OVERRIDES = {
     'learner-record': {
         'ENABLE_VERIFIABLE_CREDENTIALS': 'true'
     }
 }
-# """
+# """,
         )
     ]
 )
@@ -161,7 +164,9 @@ tutor_hooks.Filters.ENV_TEMPLATE_ROOTS.add_item(
 # PATCH LOADING
 ########################################
 
-for path in glob(str(importlib_resources.files("tutorcredentials_sharing") / "patches" / "*")):
+for path in glob(
+    str(importlib_resources.files("tutorcredentials_sharing") / "patches" / "*")
+):
     with open(path, encoding="utf-8") as patch_file:
         tutor_hooks.Filters.ENV_PATCHES.add_item(
             (os.path.basename(path), patch_file.read())

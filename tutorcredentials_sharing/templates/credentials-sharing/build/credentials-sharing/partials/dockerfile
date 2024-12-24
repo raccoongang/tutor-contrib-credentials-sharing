@@ -5,6 +5,7 @@
 # NOTE: requirements/private.txt does't allow conditional dependencies
 # TODO: should we uninstall other brockers? (possible dependency conflict)
 # ensure appropriate broker is installed:
+RUN tutor plugins enable credentials
 {% if EVENT_BUS_BACKEND == EVENT_BUS_BACKEND_REDIS %}RUN pip install edx-event-bus-redis{% endif %}
 {% if EVENT_BUS_BACKEND == EVENT_BUS_BACKEND_KAFKA %}RUN pip install edx-event-bus-kafka{% endif %}
 ########################################
