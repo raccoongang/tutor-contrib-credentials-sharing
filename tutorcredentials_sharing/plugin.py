@@ -5,7 +5,8 @@ import typing as t
 from glob import glob
 
 import importlib_resources
-from tutor import hooks as tutor_hooks
+from tutor import exceptions, hooks as tutor_hooks
+from tutor.plugins import is_loaded
 from tutor.__about__ import __version_suffix__
 
 from .__about__ import __version__
@@ -13,6 +14,25 @@ from .__about__ import __version__
 # Handle version suffix in main mode, just like tutor core
 if __version_suffix__:
     __version__ += "-" + __version_suffix__
+
+
+REQUIRED_PLUGINS = ("credentials",)
+
+
+@tutor_hooks.Filters.ENV_PATCHES.add()
+def check_required_plugins_enabled(env: list):
+    """
+    Checks if the plugins that depend on credentials-sharing are enabled.
+
+    If the corresponding plugin is not enabled, returns an error.
+    """
+    for required_plugin in REQUIRED_PLUGINS:
+        if not is_loaded(required_plugin):
+            raise exceptions.TutorError(
+                f"Cannot enable 'credentials-sharing' because '{required_plugin}' is disabled or not installed.\n"
+                f"Please run: tutor plugins enable {required_plugin}"
+            )
+    return env
 
 # Event Bus configuration.
 #
