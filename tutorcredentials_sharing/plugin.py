@@ -20,7 +20,7 @@ REQUIRED_PLUGINS = ("credentials",)
 
 
 @tutor_hooks.Filters.ENV_PATCHES.add()
-def check_required_plugins_enabled(env):
+def check_required_plugins_enabled(env: list):
     """
     Checks if the plugins that depend on credentials-sharing are enabled.
 
